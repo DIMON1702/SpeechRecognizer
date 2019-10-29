@@ -1,4 +1,5 @@
 import speech_recognition as sr
+import time
 
 
 def recognize_from_audiofile(recognizer, filename):
@@ -48,10 +49,28 @@ def speech_to_flac(recognizer, microphone, filename):
     return 0
 
 
+def callback(recognizer, audio):
+    try:
+        speech = recognizer.recognize_google(audio)
+        print(speech)
+    except sr.RequestError:
+        print("Error! API unavailable")
+    except sr.UnknownValueError:
+        print("Error! Unable to recognize speech")
+    except Exception as e:
+        print(e)
+
+
 if __name__ == "__main__":
     r = sr.Recognizer()  # Creating Recognizer object
     mic = sr.Microphone()  # Creating Microphone object
-    filename = "test.flac"
-    speech_to_flac(r, mic, filename)  # Saving speech to filename
-    text_from_audio = recognize_from_audiofile(r, filename)
-    print(text_from_audio)
+    # filename = "test.flac"
+    # speech_to_flac(r, mic, filename)  # Saving speech to filename
+    # text_from_audio = recognize_from_audiofile(r, filename)
+    # print(text_from_audio)
+    with mic as source:
+        r.adjust_for_ambient_noise(source)
+        print('start speech')
+    stop_listening = r.listen_in_background(source, callback)
+    for _ in range(300):
+        time.sleep(0.1)
