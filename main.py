@@ -1,5 +1,6 @@
 import speech_recognition as sr
 import time
+from business_logic import get_answer
 
 
 def recognize_from_audiofile(recognizer, filename):
@@ -52,13 +53,15 @@ def speech_to_flac(recognizer, microphone, filename):
 def callback(recognizer, audio):
     try:
         speech = recognizer.recognize_google(audio)
-        print(speech)
+        # print(speech)
     except sr.RequestError:
         print("Error! API unavailable")
     except sr.UnknownValueError:
         print("Error! Unable to recognize speech")
     except Exception as e:
         print(e)
+    else:
+        print(get_answer(speech))
 
 
 if __name__ == "__main__":
