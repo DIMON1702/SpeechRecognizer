@@ -39,7 +39,7 @@ def save_result_to_json(result_dict):
 
 def recognize_from_audio(r, audio):
     try:
-        text = r.recognize_google(audio)
+        text = r.recognize_google(audio, language="en-US")
         print(text)
     except sr.RequestError:
         print("Error! API unavailable")
@@ -90,9 +90,11 @@ def start_listen(r, mic, sec):
     stop_listening = r.listen_in_background(source, callback)
     for _ in range(10 * sec):
         time.sleep(0.1)
-
+    stop_listening()
     end_record = datetime.now()
 
+    start_pause = 0
+    pauses = []
     if results:
         start_pause = (results[0]["start_time"] - start_record).total_seconds()
         pauses = get_pauses(results)
@@ -112,6 +114,13 @@ def start_listen(r, mic, sec):
 if __name__ == "__main__":
     r = sr.Recognizer()  # Creating Recognizer object
     mic = sr.Microphone()  # Creating Microphone object
-    data = start_listen(r, mic, 10)
-    text = [audio['text'] for audio in data['audios']]
-    get_answer('. '.join(text))
+    for i in range(3):
+        data = start_listen(r, mic, 10)
+        words = [audio['text'] for audio in data['audios'] if audio['text'] is not None]
+        text = '. '.join(words)
+        print("text", text)
+        try:
+            get_answer(text)
+        except Exception as e:
+            print('No text', e)
+        time.sleep(len(text)* 0.1)
