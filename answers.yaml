@@ -1,0 +1,91 @@
+0:
+  tag: intro call
+  answer:
+    - keyword: []
+      say: |
+        Hi, this is John calling from Toyota. We have a sale going right now. 
+        Would you like to hear how you can save money on your car purchase today?
+1:
+  tag: first response
+  answer:
+    - keyword:
+        - no thanks
+        - not interested
+        - "no"
+        - fuck you
+      say: ' '
+      cmd: REJECT
+    - keyword:
+        - not right now
+        - don't have time
+        - not now
+        - later
+      cmd: LATER
+      say: |
+        Excuse for troubling.
+    - keyword: []
+      cmd: SILENCE
+
+    - keyword:
+        - ok
+        - "yes"
+        - i think so
+        - not sure
+      say: |
+        great! here's how it works. a representative will call you to explain all the details
+        right after this phone call. is it ok?
+      cmd: ACCEPT
+2:
+  tag: second response
+  answer:
+    - keyword: []
+      say: would you like a representative to call you with more information?
+      cmd: STEP 4
+    
+    - keyword:
+        - yeah
+        - "yes"
+        - yep
+        - sure
+        - please call
+      cmd: EXIT
+      say: |
+        Great, our manager will call you back now for further details.
+3:
+  tag: good to call back
+  answer:
+    - keyword: []
+#  ...
+4:
+  tag: response not understood
+  answer:
+    - keyword: []
+#  ...
+5:
+  tag: not now
+  answer:
+    - keyword: []
+#  ...
+reject:
+  tag: user rejected
+  answer:
+    - keyword: []
+      say: Excuse for troubling. Goodbye.
+
+later:
+  tag: call later
+  answer:
+    - keyword: []
+      say:  I'll call you back later.
+
+silence:
+  tag: user is silent
+  answer:
+    - keyword: []
+      say: Sorry, I did not hear. Could you repeat it?
+
+incorrect:
+  tag: incorrect speach
+  answer:
+    - keyword: []
+      say: Sorry, I do not understand what you said. Could you repeat it?
