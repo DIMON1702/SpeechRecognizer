@@ -1,126 +1,109 @@
 import speech_recognition as sr
-import time
-from datetime import datetime, timedelta
-import json
-from business_logic import get_answer
 
-import soundfile as sf
+from recognizer_module import start_listen
+from tts_module import text_to_speech_espeak as tts_espeak
+from tts_module import text_to_speech_rhvoice as tts_rhvoice
 
-results = []
-folder = 'audios/'
-
-
-def get_pauses(results):
-    pauses = []
-    if len(results) > 1:
-        for index, res in enumerate(results[:-1]):
-            pause = results[index + 1]["start_time"] - res["end_time"]
-            pauses.append(pause.total_seconds())
-    return pauses
+from pathlib import Path
+import yaml
+from answers import parse_answers, Step, Answer
 
 
-def save_result_to_json(result_dict):
-    json_audios = result_dict['audios']
+tts = tts_espeak
 
-    for res in json_audios:
-        res['start_time'] = res['start_time'].strftime('%H:%M:%S')
-        res['end_time'] = res['end_time'].strftime('%H:%M:%S')
-        res.pop('audio')
+def get_words_from_speach(speach):
+    if len(speach['audios']) == 0: # silence
+        return None
 
-    result_dict['audios'] = json_audios
-    result_dict['start_record'] = result_dict['start_record'].strftime(
-        '%H:%M:%S')
-    result_dict['end_record'] = result_dict['end_record'].strftime('%H:%M:%S')
-
-    json_filename = "data_{}.json".format(result_dict['start_record'])
-    with open(json_filename, 'w') as f:
-        f.write(json.dumps(result_dict))
+    res = [audio['text'].split(' ') for audio in speach['audios'] if audio['text'] is not None]
+    res = sum(res, [])
+    return res
 
 
-def recognize_from_audio(r, audio):
-    try:
-        text = r.recognize_google(audio, language="en-US")
-        print(text)
-    except sr.RequestError:
-        print("Error! API unavailable")
-    except sr.UnknownValueError:
-        print("Error! Unable to recognize speech")
-    except Exception as e:
-        print(e)
+def rejection(db):
+    print('rejected')
+    tts(db['reject'].answers[0].say)
+    return 1
+
+
+def later(db):
+    print('later')
+    tts(db['later'].answers[0].say)
+    return 2
+
+
+def silence(db):
+    print('silence')
+    tts(db['silence'].answers[0].say)
+    return 3
+
+
+def accept(db, stage):
+    print('accepted')
+    tts(db[stage].answers[-1].say)
+    dialog(stage + 1)
+    return 0
+
+
+def incorrect(db):
+    print('incorrect')
+    tts(db['incorrect'].answers[0].say)
+    return 4
+
+
+def end_call(text):
+    print('exit')
+    tts(text)
+    return 0
+
+
+def next_choise(command, db, stage):
+    if command == 'REJECT':
+        result = rejection(db)
+    elif command == 'LATER':
+        result = later(db)
+    elif command == 'ACCEPT':
+        result = accept(db, stage)
+    elif command == 'EXIT':
+        result = end_call(db[stage].answers[-1].say)
     else:
-        return text
+        result = 'error'
+    return result
 
 
-def callback(recognizer, audio):
-    end_time = datetime.now()
-    filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
-    flac_data = audio.get_flac_data()
-    with open(folder + filename, 'wb') as f:
-        f.write(flac_data)
-
-    f = sf.SoundFile(folder + filename)
-    duration = len(f) / f.samplerate
-    start_time = end_time - timedelta(seconds=duration)
-
-    text = recognize_from_audio(recognizer, audio)
-
-    result = {
-        'audio': audio,
-        'start_time': start_time,
-        'end_time': end_time,
-        'duration': duration,
-        'audio_filename': filename,
-        'text': text,
-    }
-    results.append(result)
-
-
-def start_listen(r, mic, sec):
+def get_answer(text, db, stage):
     """
-    function listening in background and save all speeches\n
-    sec - time in seconds to listening
+    text - list of words from user response
+    db - dict with answers from yaml file
+    stage - start position in file  
     """
-    global results
-    results = []
-    with mic as source:
-        r.adjust_for_ambient_noise(source)
-        print('start speech')
+    for answer in db[stage].answers:
+        for word in text:
+            if word in answer.keyword:
+                answer = next_choise(answer.cmd, db, stage)
+                return answer
+    return incorrect(db)
 
-    start_record = datetime.now()
-    stop_listening = r.listen_in_background(source, callback)
-    for _ in range(10 * sec):
-        time.sleep(0.1)
-    stop_listening()
-    end_record = datetime.now()
 
-    start_pause = 0
-    pauses = []
-    if results:
-        start_pause = (results[0]["start_time"] - start_record).total_seconds()
-        pauses = get_pauses(results)
+def dialog(stage):
+    for _ in range (2): # repeats
+        text = get_words_from_speach(start_listen(r, mic, 5))
+        if text is None: # silence
+            silence(db)
+        elif len(text) == 0: # not recognize
+            incorrect(db)
+        else:
+            answer = get_answer(text, db, stage)
+            if answer == 4:
+                continue
+            break
 
-    result_dict = {
-        'start_record': start_record,
-        'end_record': end_record,
-        'audios': results,
-        'start_pause': start_pause,
-        'pauses': pauses
-    }
+r = sr.Recognizer()  # Creating Recognizer object
+mic = sr.Microphone()  # Creating Microphone object
 
-    save_result_to_json(result_dict.copy())
-    return result_dict
-
+data = yaml.safe_load(Path('answers.yaml').open())
+db = parse_answers(data)
 
 if __name__ == "__main__":
-    r = sr.Recognizer()  # Creating Recognizer object
-    mic = sr.Microphone()  # Creating Microphone object
-    for i in range(3):
-        data = start_listen(r, mic, 10)
-        words = [audio['text'] for audio in data['audios'] if audio['text'] is not None]
-        text = '. '.join(words)
-        print("text", text)
-        try:
-            get_answer(text)
-        except Exception as e:
-            print('No text', e)
-        time.sleep(len(text)* 0.1)
+    tts(db[0].answers[0].say) # first phrase
+    dialog(1)
