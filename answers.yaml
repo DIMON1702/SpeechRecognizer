@@ -92,7 +92,7 @@ silence:
       say: Sorry, I did not hear.
 
 incorrect:
-  tag: incorrect speach
+  tag: incorrect speech
   answer:
     - keyword: []
       say: Sorry, I do not understand what you said.
