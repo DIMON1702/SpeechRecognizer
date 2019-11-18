@@ -9,7 +9,7 @@ from pathlib import Path
 import yaml
 from answers import parse_answers, Step, Answer
 
-from settings import MODE
+# from settings import MODE
 from datetime import datetime, timedelta
 import soundfile as sf
 import json
