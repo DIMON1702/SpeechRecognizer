@@ -13,27 +13,28 @@ def get_pauses(results):
     pauses = []
     if len(results) > 1:
         for index, res in enumerate(results[:-1]):
-            pause = results[index + 1]["start_time"] - res["end_time"]
+            pause = results[index + 1]["start_speech"] - res["end_speech"]
             pauses.append(pause.total_seconds())
     return pauses
 
 
-def save_result_to_json(result_dict):
-    json_audios = result_dict['audios']
+# def save_result_to_json(result_to_json):
+#     json_audios = result_to_json['audios']
 
-    for res in json_audios:
-        res['start_time'] = res['start_time'].strftime('%H:%M:%S')
-        res['end_time'] = res['end_time'].strftime('%H:%M:%S')
-        res.pop('audio')
+#     for res in json_audios:
+#         res['start_speech'] = res['start_speech'].strftime('%H_%M_%S')
+#         res['end_speech'] = res['end_speech'].strftime('%H_%M_%S')
+#         res.pop('audio')
 
-    result_dict['audios'] = json_audios
-    result_dict['start_record'] = result_dict['start_record'].strftime(
-        '%H:%M:%S')
-    result_dict['end_record'] = result_dict['end_record'].strftime('%H:%M:%S')
+#     result_to_json['audios'] = json_audios
+#     result_to_json['start_record'] = result_to_json['start_record'].strftime(
+#         '%H_%M_%S')
+#     result_to_json['end_record'] = result_to_json['end_record'].strftime(
+#         '%H_%M_%S')
 
-    json_filename = "data_{}.json".format(result_dict['start_record'])
-    with open(json_filename, 'w') as f:
-        f.write(json.dumps(result_dict))
+#     json_filename = "data_{}.json".format(result_to_json['start_record'])
+#     with open(json_filename, 'w') as f:
+#         f.write(json.dumps(result_to_json))
 
 
 def recognize_from_audio(r, audio):
@@ -50,52 +51,45 @@ def recognize_from_audio(r, audio):
         return text
 
 
-def callback(recognizer, audio):
-    end_time = datetime.now()
-    filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
-    flac_data = audio.get_flac_data()
-    with open(folder + filename, 'wb') as f:
-        f.write(flac_data)
+# def callback(recognizer, audio):
+#     end_time = datetime.now()
+#     filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
+#     flac_data = audio.get_flac_data()
+#     with open(folder + filename, 'wb') as f:
+#         f.write(flac_data)
 
-    f = sf.SoundFile(folder + filename)
-    duration = len(f) / f.samplerate
-    start_time = end_time - timedelta(seconds=duration)
+#     f = sf.SoundFile(folder + filename)
+#     duration = len(f) / f.samplerate
+#     start_time = end_time - timedelta(seconds=duration)
 
-    text = recognize_from_audio(recognizer, audio)
+#     text = recognize_from_audio(recognizer, audio)
+#     print(text)
 
-    result = {
-        'audio': audio,
-        'start_time': start_time,
-        'end_time': end_time,
-        'duration': duration,
-        'audio_filename': filename,
-        'text': text,
-    }
-    results.append(result)
+#     result = {
+#         'audio': audio,
+#         'start_time': start_time,
+#         'end_time': end_time,
+#         'duration': duration,
+#         'audio_filename': filename,
+#         'text': text,
+#     }
+#     all_speeches[get_stage()].append(result)
 
 
-def start_listen(r, mic, sec): 
+def start_listen(results, sec):
     """
     function listening in background and save all speeches\n
     sec - time in seconds to listening
     """
-    global results
-    results = []
-    with mic as source:
-        r.adjust_for_ambient_noise(source)
-        print('start speech')
-
     start_record = datetime.now()
-    stop_listening = r.listen_in_background(source, callback)
     for _ in range(10 * sec):
         time.sleep(0.1)
-    stop_listening()
     end_record = datetime.now()
 
     start_pause = 0
     pauses = []
     if results:
-        start_pause = (results[0]["start_time"] - start_record).total_seconds()
+        start_pause = (results[0]["start_speech"] - start_record).total_seconds()
         pauses = get_pauses(results)
 
     result_dict = {
@@ -105,8 +99,7 @@ def start_listen(r, mic, sec):
         'start_pause': start_pause,
         'pauses': pauses
     }
-
-    save_result_to_json(result_dict.copy())
+    print('-------------------------------------------------')
     return result_dict
 
 
