@@ -1,10 +1,12 @@
+import speechd
 import pyttsx3
 import pyaudio
 import miniaudio
+import time
+import soundfile as sf
 
-# import sys
-# sys.path.append('/usr/lib/python3/dist-packages/')
-# import speechd
+import sys
+sys.path.append('/usr/lib/python3/dist-packages/')
 
 
 def text_to_speech_espeak(text):
@@ -31,12 +33,11 @@ def text_to_speech_rhvoice(text):
 
 
 def play_audio(filename):
+    f = sf.SoundFile(filename)
+    duration = len(f) / f.samplerate
     stream = miniaudio.stream_file(filename)
     device = miniaudio.PlaybackDevice()
     device.start(stream)
-    input("Audio file playing in the background. Enter to stop playback: ")
+    time.sleep(duration)
+    # input("Audio file playing in the background. Enter to stop playback: ")
     device.close()
-
-if __name__ == "__main__":
-    # text_to_speech_espeak('Hi, this is John calling from Toyota. We have a sale going right now. Would you like to hear how you can save money on your car purchase today?')
-    play_audio('audios/audio_12_24_35.flac')
