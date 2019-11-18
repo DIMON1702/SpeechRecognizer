@@ -4,12 +4,13 @@ import speech_recognition as sr
 from recognizer_module import start_listen, recognize_from_audio, get_pauses
 from tts_module import text_to_speech_espeak as tts_espeak
 from tts_module import text_to_speech_rhvoice as tts_rhvoice
+from tts_module import play_audio
 
 from pathlib import Path
 import yaml
 from answers import parse_answers, Step, Answer
 
-# from settings import MODE
+from settings import MODE
 from datetime import datetime, timedelta
 import soundfile as sf
 import json
@@ -17,7 +18,10 @@ import json
 
 folder = 'audios/'
 
-tts = tts_espeak
+if MODE == 'SPEAKER':
+    tts = play_audio
+else:
+    tts = tts_espeak
 
 
 def get_words_from_speech(speech):
