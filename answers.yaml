@@ -29,6 +29,9 @@
     - keyword:
         - ok
         - "yes"
+        - yeah
+        - yep
+        - sure
         - i think so
         - not sure
       say: |
@@ -38,11 +41,30 @@
 2:
   tag: second response
   answer:
+    - keyword:
+        - no thanks
+        - not interested
+        - "no"
+        - fuck you
+      say: ' '
+      cmd: REJECT
+    - keyword:
+        - not right now
+        - don't have time
+        - not now
+        - later
+      cmd: LATER
+      say: |
+        Excuse for troubling.
+    - keyword: []
+      cmd: SILENCE
+
     - keyword: []
       say: would you like a representative to call you with more information?
-      cmd: STEP 4
+      cmd: SILENCE
     
     - keyword:
+        - ok
         - yeah
         - "yes"
         - yep
@@ -51,21 +73,6 @@
       cmd: EXIT
       say: |
         Great, our manager will call you back now for further details.
-3:
-  tag: good to call back
-  answer:
-    - keyword: []
-#  ...
-4:
-  tag: response not understood
-  answer:
-    - keyword: []
-#  ...
-5:
-  tag: not now
-  answer:
-    - keyword: []
-#  ...
 reject:
   tag: user rejected
   answer:
@@ -82,10 +89,10 @@ silence:
   tag: user is silent
   answer:
     - keyword: []
-      say: Sorry, I did not hear. Could you repeat it?
+      say: Sorry, I did not hear.
 
 incorrect:
   tag: incorrect speach
   answer:
     - keyword: []
-      say: Sorry, I do not understand what you said. Could you repeat it?
+      say: Sorry, I do not understand what you said.

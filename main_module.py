@@ -8,6 +8,8 @@ from pathlib import Path
 import yaml
 from answers import parse_answers, Step, Answer
 
+from settings import MODE
+
 
 tts = tts_espeak
 
@@ -97,12 +99,14 @@ def dialog(stage):
             if answer == 4:
                 continue
             break
+    later(db)
 
 r = sr.Recognizer()  # Creating Recognizer object
 mic = sr.Microphone()  # Creating Microphone object
 
 data = yaml.safe_load(Path('answers.yaml').open())
 db = parse_answers(data)
+stage = 0
 
 if __name__ == "__main__":
     tts(db[0].answers[0].say) # first phrase
