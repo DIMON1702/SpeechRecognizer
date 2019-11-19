@@ -1,10 +1,10 @@
 from datetime import datetime
 import speech_recognition as sr
 
-from recognizer_module import start_listen, recognize_from_audio, get_pauses
+from recognizer_module import recognize_from_audio, get_pauses
 from tts_module import text_to_speech_espeak as tts_espeak
 from tts_module import text_to_speech_rhvoice as tts_rhvoice
-from tts_module import play_audio
+from tts_module import play_audio, engine
 
 from pathlib import Path
 import yaml
@@ -14,6 +14,7 @@ from settings import MODE
 from datetime import datetime, timedelta
 import soundfile as sf
 import json
+import time
 
 
 folder = 'audios/'
@@ -30,6 +31,14 @@ def get_words_from_speech(speech):
 
     res = [audio['text'].split(
         ' ') for audio in speech['audios'] if audio['text'] is not None]
+    res = sum(res, [])
+    return res
+
+
+def get_words(stage):
+    if len(stage) == 0:  # silence
+        return None
+    res = [speech['text'].split(' ') for speech in stage if speech['text'] is not None]
     res = sum(res, [])
     return res
 
@@ -53,10 +62,11 @@ def silence(db):
 
 
 def accept(db):
-    global stage
+    global stage, keyword
     print('accepted')
     all_speeches.append([])
     stage += 1
+    keyword = False
     tts(db[stage].answers[-1].say)
     dialog()
     return 0
@@ -88,7 +98,7 @@ def next_choise(command, db):
     return result
 
 
-def get_answer(text, db):
+def get_answer(text, db, only_check=False):
     """
     text - list of words from user response
     db - dict with answers from yaml file
@@ -97,16 +107,27 @@ def get_answer(text, db):
     for answer in db[stage + 1].answers:
         for word in text:
             if word in answer.keyword:
+                if only_check:
+                    return True
                 answer = next_choise(answer.cmd, db)
                 return answer
+    if only_check:
+        return False
     return incorrect(db)
 
 
 def dialog(answer_time=5, repeat=2):
     for attempt in range(repeat):  # repeats
-        # print('start_listen_res\n' ,start_listen(all_speeches[stage], 5))
-        text = get_words_from_speech(start_listen(all_speeches[stage], answer_time))
-        print(text)
+
+        # time to answer
+        for _ in range(10 * answer_time):
+            if keyword:
+                break
+            print(_)
+            time.sleep(0.1)
+
+        text = get_words(all_speeches[stage])
+        print('text in dialog:', text)
         if text is None:  # silence
             silence(db)
         elif len(text) == 0:  # not recognize
@@ -122,6 +143,7 @@ def dialog(answer_time=5, repeat=2):
 
 
 def callback(recognizer, audio):
+    global keyword
     end_time = datetime.now()
     filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
     flac_data = audio.get_flac_data()
@@ -144,14 +166,12 @@ def callback(recognizer, audio):
         'text': text,
     }
     all_speeches[stage].append(result)
-
-
-# def get_pauses(stage):
-#     pauses = []
-#     for i in range(len(stage) - 1):
-#         pause = (stage[i + 1]['start_speech'] - stage[i]['end_speech']).total_seconds()
-#         pauses.append(pause)
-#     return pauses
+    if text :
+        words = text.split(' ')
+        if get_answer(words, db, True):
+            engine.stop()
+            print('engine stopped')
+            keyword = True
 
 
 def format_json(start_call, end_call, all_speeches):
@@ -159,7 +179,8 @@ def format_json(start_call, end_call, all_speeches):
     for index, stage in enumerate(all_speeches):
         json_results.append([])
         for speech in stage:
-            res = {key: (value if not isinstance(value, datetime) else value.strftime('%H_%M_%S')) for key, value in speech.items()}
+            res = {key: (value if not isinstance(value, datetime) else value.strftime(
+                '%H_%M_%S')) for key, value in speech.items()}
             json_results[index].append(res)
         json_results[index].append({'pauses': get_pauses(stage)})
 
@@ -181,6 +202,7 @@ data = yaml.safe_load(Path('answers.yaml').open())
 db = parse_answers(data)
 stage = 0
 all_speeches = [[]]
+keyword = False
 
 
 if __name__ == "__main__":
@@ -198,3 +220,4 @@ if __name__ == "__main__":
     end_record = datetime.now()
     print(all_speeches)
     format_json(start_record, end_record, all_speeches)
+    time.sleep(2)

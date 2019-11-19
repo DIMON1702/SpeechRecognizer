@@ -1,4 +1,3 @@
-import speechd
 import pyttsx3
 import pyaudio
 import miniaudio
@@ -7,15 +6,19 @@ import soundfile as sf
 
 import sys
 sys.path.append('/usr/lib/python3/dist-packages/')
+import speechd
+
+
+engine = pyttsx3.init()
+rate = engine.getProperty('rate')
+engine.setProperty('rate', rate-50)
+engine.setProperty('voice', 'english+1')
 
 
 def text_to_speech_espeak(text):
-    engine = pyttsx3.init()
-    rate = engine.getProperty('rate')
-    engine.setProperty('rate', rate-50)
-    engine.setProperty('voice', 'english+1')
     engine.say(text)
     engine.runAndWait()
+    print('----------runAndWait-----------')
 
 
 def text_to_speech_rhvoice(text):
@@ -33,10 +36,11 @@ def text_to_speech_rhvoice(text):
 
 
 def play_audio(filename):
+    device = miniaudio.PlaybackDevice()
     f = sf.SoundFile(filename)
     duration = len(f) / f.samplerate
     stream = miniaudio.stream_file(filename)
-    device = miniaudio.PlaybackDevice()
+
     device.start(stream)
     time.sleep(duration)
     # input("Audio file playing in the background. Enter to stop playback: ")
