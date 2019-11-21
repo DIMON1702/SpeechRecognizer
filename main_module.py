@@ -2,27 +2,21 @@ from datetime import datetime
 import speech_recognition as sr
 
 from recognizer_module import recognize_from_audio, get_pauses
-from tts_module import text_to_speech_espeak as tts_espeak
-from tts_module import text_to_speech_rhvoice as tts_rhvoice
-from tts_module import play_audio, engine, device
+# from tts_module import text_to_speech_espeak as tts_espeak
+# from tts_module import text_to_speech_rhvoice as tts_rhvoice
+# from tts_module import engine
+
+import miniaudio
 
 from pathlib import Path
 import yaml
 from answers import parse_answers, Step, Answer
 
-from settings import MODE
+from settings import MODE, REPEAT
 from datetime import datetime, timedelta
 import soundfile as sf
 import json
 import time
-
-
-folder = 'user_speeches/'
-
-if MODE == 'SPEAKER':
-    tts = play_audio
-else:
-    tts = tts_espeak
 
 
 def get_words_from_speech(speech):
@@ -38,7 +32,8 @@ def get_words_from_speech(speech):
 def get_words(stage):
     if len(stage) == 0:  # silence
         return None
-    res = [speech['text'].split(' ') for speech in stage if speech['text'] is not None]
+    res = [speech['text'].split(' ')
+           for speech in stage if speech['text'] is not None]
     res = sum(res, [])
     return res
 
@@ -47,39 +42,41 @@ def rejection(db):
     global end_call
     end_call = True
     print('rejected')
-    return db['reject'].answers[0].say # 1
+    return db['reject'].answers[0].say  # 1
 
 
 def later(db):
     global end_call
     end_call = True
     print('later')
-    return db['later'].answers[0].say # 2
+    return db['later'].answers[0].say  # 2
 
 
 def silence(db):
     print('silence')
-    return db['silence'].answers[0].say # 3
+    return db['silence'].answers[0].say  # 3
 
 
 def accept(db):
-    global stage, keyword
+    global stage, keyword, attempt
     print('accepted')
     all_speeches.append([])
     stage += 1
-    keyword = False
-    return db[stage].answers[-1].say # 0
+    attempt = 0
+    # keyword = False
+    return db[stage].answers[-1].say  # 0
+
 
 def incorrect(db):
     print('incorrect')
-    return db['incorrect'].answers[0].say # 4
+    return db['incorrect'].answers[0].say  # 4
 
 
 def call_end(text):
     global end_call
     end_call = True
     print('exit')
-    return "End call" # text 0
+    return "End call"  # text 0
 
 
 def next_choise(command, db):
@@ -115,30 +112,38 @@ def get_answer(text, db, only_check=False):
 
 
 def dialog(speak_phrase, answer_time=5, repeat=2):
-    global keyword
+    global keyword, attempt
     tts(speak_phrase)
-    next_phrase = ''
-    for attempt in range(repeat):
-        for _ in range(10 * answer_time):
-            if keyword:
-                break
-            time.sleep(0.1)
-
-        text = get_words(all_speeches[stage])
-        print('text in dialog:', text) # for debug
-        if text is None:  # silence
-            next_phrase = silence(db)
-        elif len(text) == 0:  # not recognize
-            next_phrase = incorrect(db)
-        else:
-            next_phrase = get_answer(text, db)
+    next_phrase = speak_phrase
+    # for attempt in range(repeat):
+    print('time to answer')
+    for _ in range(10 * answer_time):
+        print(_, 'in dialog main')
+        if get_keyword():
             break
+        time.sleep(0.1)
 
-        if attempt == repeat - 1:
-            return later(db)
-        tts(next_phrase)
+    text = get_words(all_speeches[stage])
+    print('text in dialog:', text)  # for debug
+    if text is None:  # silence
+        next_phrase = silence(db)
+        attempt += 1
+    elif len(text) == 0:  # not recognize
+        next_phrase = incorrect(db)
+        attempt += 1
+    else:
+        next_phrase = get_answer(text, db)
+        toggle_keyword()
+        # break
+
+    if attempt == REPEAT:
+        return later(db)
+    # tts(next_phrase)
     if not end_call:
         dialog(next_phrase)
+    else:
+        print('not end', next_phrase)
+    return next_phrase
 
 
 def callback(recognizer, audio):
@@ -165,12 +170,24 @@ def callback(recognizer, audio):
         'text': text,
     }
     all_speeches[stage].append(result)
-    if text :
+    if text:
         words = text.split(' ')
         if get_answer(words, db, True):
             device.stop()
             print('engine stopped')
-            keyword = not keyword
+            toggle_keyword()
+            # print(check_keyword())
+
+
+def toggle_keyword():
+    global keyword
+    keyword = not keyword
+
+
+def get_keyword():
+    global keyword
+    # print('keyword is', keyword)
+    return keyword
 
 
 def format_json(start_call, end_call, all_speeches):
@@ -194,6 +211,34 @@ def format_json(start_call, end_call, all_speeches):
         f.write(json.dumps(result))
 
 
+def play_audio(filename):
+    print(filename)
+    f = sf.SoundFile(filename)
+    duration = len(f) / f.samplerate
+    stream = miniaudio.stream_file(filename)
+    print(duration)
+    device.start(stream)
+    for _ in range(10 * (int(duration) + 1)):
+        # print(_, 'in play_audio tts')
+        if get_keyword():
+            break
+        time.sleep(0.1)
+
+    # input("Audio file playing in the background. Enter to stop playback: ")
+    try:
+        device.stop()
+    except Exception as e:
+        print(e)
+
+
+folder = 'user_speeches/'
+
+# if MODE == 'SPEAKER':
+tts = play_audio
+# else:
+#     tts = tts_espeak
+
+device = miniaudio.PlaybackDevice()
 r = sr.Recognizer()  # Creating Recognizer object
 mic = sr.Microphone()  # Creating Microphone object
 
@@ -203,6 +248,7 @@ stage = 0
 all_speeches = [[]]
 keyword = False
 end_call = False
+attempt = 0
 
 
 if __name__ == "__main__":
