@@ -1,4 +1,5 @@
 import pyttsx3
+from gtts import gTTS
 import pyaudio
 import miniaudio
 import time
@@ -21,6 +22,18 @@ def text_to_speech_espeak(text):
     print('----------runAndWait-----------')
 
 
+from gtts import gTTS
+
+path = 'audios/'
+filename = '*.mp3'
+text = ''
+
+
+def text_to_mp3(text, filename, path='audios/'):
+    tts = gTTS(text)
+    tts.save(path + filename)
+
+
 def text_to_speech_rhvoice(text):
     tts_d = speechd.SSIPClient('test')
     tts_d.set_output_module('rhvoice')
@@ -35,13 +48,26 @@ def text_to_speech_rhvoice(text):
     tts_d.close()
 
 
+device = miniaudio.PlaybackDevice()
+
+
+def get_stop():
+    from _main import keyword
+    return keyword
+
 def play_audio(filename):
-    device = miniaudio.PlaybackDevice()
+    print(filename)
     f = sf.SoundFile(filename)
     duration = len(f) / f.samplerate
     stream = miniaudio.stream_file(filename)
-
+    print(duration)
     device.start(stream)
-    time.sleep(duration)
+    for _ in range (10 * (int(duration) + 1)):
+        if get_stop():
+            break
+        time.sleep(0.1)
     # input("Audio file playing in the background. Enter to stop playback: ")
-    device.close()
+    try:
+        device.stop()
+    except Exception as e:
+        print(e)

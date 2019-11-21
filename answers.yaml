@@ -2,9 +2,7 @@
   tag: intro call
   answer:
     - keyword: []
-      say: |
-        Hi, this is John calling from Toyota. We have a sale going right now. 
-        Would you like to hear how you can save money on your car purchase today?
+      say: audios/intro.wav
 1:
   tag: first response
   answer:
@@ -13,7 +11,7 @@
         - not interested
         - "no"
         - fuck you
-      say: ' '
+      say: audios/none.wav
       cmd: REJECT
     - keyword:
         - not right now
@@ -21,8 +19,7 @@
         - not now
         - later
       cmd: LATER
-      say: |
-        Excuse for troubling.
+      say: audios/none.wav
     - keyword: []
       cmd: SILENCE
 
@@ -34,9 +31,7 @@
         - sure
         - i think so
         - not sure
-      say: |
-        great! here's how it works. a representative will call you to explain all the details
-        right after this phone call. is it ok?
+      say: audios/step2_accepted.wav
       cmd: ACCEPT
 2:
   tag: second response
@@ -46,7 +41,7 @@
         - not interested
         - "no"
         - fuck you
-      say: ' '
+      say: audios/none.wav
       cmd: REJECT
     - keyword:
         - not right now
@@ -54,13 +49,12 @@
         - not now
         - later
       cmd: LATER
-      say: |
-        Excuse for troubling.
+      say: audios/none.wav
     - keyword: []
       cmd: SILENCE
 
     - keyword: []
-      say: would you like a representative to call you with more information?
+      say: audios/none.wav
       cmd: SILENCE
     
     - keyword:
@@ -71,28 +65,28 @@
         - sure
         - please call
       cmd: EXIT
-      say: |
-        Great, our manager will call you back now for further details.
+      say: audios/step3_accepted.wav
+
 reject:
   tag: user rejected
   answer:
     - keyword: []
-      say: Excuse for troubling. Goodbye.
+      say: audios/reject.wav
 
 later:
   tag: call later
   answer:
     - keyword: []
-      say:  I'll call you back later.
+      say: audios/later.wav
 
 silence:
   tag: user is silent
   answer:
     - keyword: []
-      say: Sorry, I did not hear.
+      say: audios/silence.wav
 
 incorrect:
   tag: incorrect speech
   answer:
     - keyword: []
-      say: Sorry, I do not understand what you said.
+      say: audios/incorrect.wav
