@@ -4,7 +4,7 @@ import speech_recognition as sr
 from recognizer_module import recognize_from_audio, get_pauses
 from tts_module import text_to_speech_espeak as tts_espeak
 from tts_module import text_to_speech_rhvoice as tts_rhvoice
-from tts_module import play_audio, engine
+from tts_module import play_audio, engine, device
 
 from pathlib import Path
 import yaml
@@ -17,7 +17,7 @@ import json
 import time
 
 
-folder = 'audios/'
+folder = 'user_speeches/'
 
 if MODE == 'SPEAKER':
     tts = play_audio
@@ -44,21 +44,22 @@ def get_words(stage):
 
 
 def rejection(db):
+    global end_call
+    end_call = True
     print('rejected')
-    tts(db['reject'].answers[0].say)
-    return 1
+    return db['reject'].answers[0].say # 1
 
 
 def later(db):
+    global end_call
+    end_call = True
     print('later')
-    tts(db['later'].answers[0].say)
-    return 2
+    return db['later'].answers[0].say # 2
 
 
 def silence(db):
     print('silence')
-    tts(db['silence'].answers[0].say)
-    return 3
+    return db['silence'].answers[0].say # 3
 
 
 def accept(db):
@@ -67,21 +68,18 @@ def accept(db):
     all_speeches.append([])
     stage += 1
     keyword = False
-    tts(db[stage].answers[-1].say)
-    dialog()
-    return 0
-
+    return db[stage].answers[-1].say # 0
 
 def incorrect(db):
     print('incorrect')
-    tts(db['incorrect'].answers[0].say)
-    return 4
+    return db['incorrect'].answers[0].say # 4
 
 
-def end_call(text):
+def call_end(text):
+    global end_call
+    end_call = True
     print('exit')
-    tts(text)
-    return 0
+    return "End call" # text 0
 
 
 def next_choise(command, db):
@@ -92,7 +90,7 @@ def next_choise(command, db):
     elif command == 'ACCEPT':
         result = accept(db)
     elif command == 'EXIT':
-        result = end_call(db[stage].answers[-1].say)
+        result = call_end(db[stage].answers[-1].say)
     else:
         result = 'error'
     return result
@@ -116,30 +114,31 @@ def get_answer(text, db, only_check=False):
     return incorrect(db)
 
 
-def dialog(answer_time=5, repeat=2):
-    for attempt in range(repeat):  # repeats
-
-        # time to answer
+def dialog(speak_phrase, answer_time=5, repeat=2):
+    global keyword
+    tts(speak_phrase)
+    next_phrase = ''
+    for attempt in range(repeat):
         for _ in range(10 * answer_time):
             if keyword:
                 break
-            print(_)
             time.sleep(0.1)
 
         text = get_words(all_speeches[stage])
-        print('text in dialog:', text)
+        print('text in dialog:', text) # for debug
         if text is None:  # silence
-            silence(db)
+            next_phrase = silence(db)
         elif len(text) == 0:  # not recognize
-            incorrect(db)
+            next_phrase = incorrect(db)
         else:
-            answer = get_answer(text, db)
-            if answer == 4:
-                continue
+            next_phrase = get_answer(text, db)
             break
-        print('attempt=', attempt)
+
         if attempt == repeat - 1:
-            later(db)
+            return later(db)
+        tts(next_phrase)
+    if not end_call:
+        dialog(next_phrase)
 
 
 def callback(recognizer, audio):
@@ -169,9 +168,9 @@ def callback(recognizer, audio):
     if text :
         words = text.split(' ')
         if get_answer(words, db, True):
-            engine.stop()
+            device.stop()
             print('engine stopped')
-            keyword = True
+            keyword = not keyword
 
 
 def format_json(start_call, end_call, all_speeches):
@@ -203,6 +202,7 @@ db = parse_answers(data)
 stage = 0
 all_speeches = [[]]
 keyword = False
+end_call = False
 
 
 if __name__ == "__main__":
@@ -213,8 +213,7 @@ if __name__ == "__main__":
     start_record = datetime.now()
     stop_listening = r.listen_in_background(source, callback)
 
-    tts(db[0].answers[0].say)  # first phrase
-    dialog(4)
+    tts(dialog(db[0].answers[0].say, 4))
     stop_listening()
     print('voice recording stopped')
     end_record = datetime.now()
