@@ -19,9 +19,10 @@ def get_words_from_speech(stage):
     """
     if len(stage) == 0:  # silence
         return None
-    res = [speech['text'].split(' ')
+    # res = [speech['text'].split(' ')
+    res = [speech['text']
            for speech in stage if speech['text'] is not None]
-    res = sum(res, [])
+    print(res)
     return res
 
 
@@ -134,7 +135,8 @@ def dialog(speak_phrase, answer_time=5, repeat=2):
         next_phrase = incorrect(db)
         attempt += 1
     else:
-        next_phrase = get_answer(text, db)
+        next_phrase = get_command(text)
+        # next_phrase = get_answer(text, db)
         if not get_keyword():
             attempt += 1
         else:
@@ -173,15 +175,13 @@ def callback(recognizer, audio):
         'text': text,
     }
     all_speeches[stage].append(result)
-    if text:
-        words = text.split(' ')
-        if get_answer(words, db, True):
-            try:
-                device.stop()
-            except:
-                pass
-            print('engine stopped')
-            toggle_keyword()
+    if text and get_command([text], True):
+        try:
+            device.stop()
+        except:
+            pass
+        print('engine stopped')
+        toggle_keyword()
 
 
 def toggle_keyword():
@@ -251,17 +251,25 @@ reject_words = ["no", "not interest", "f*** you", "don't call me", "stop calling
 later_words = ["not right now", "don't have time", "not now", "later", "in an hour", "hour", "minutes", "tomorrow"]
 
 
-def get_command(stage):
-    text = stage
-    for word in reject_words:
-        if word in text:
-            return rejection(db)
-    for word in later_words:
-        if word in text:
-            return later(db)
-    for word in accept_words:
-        if word in text:
-            return accept(db)
+def get_command(stage, only_check=False):
+    for text in stage:
+        for word in reject_words:
+            if word in text:
+                if only_check:
+                    return True
+                return rejection(db)
+        for word in later_words:
+            if word in text:
+                if only_check:
+                    return True
+                return later(db)
+        for word in accept_words:
+            if word in text:
+                if only_check:
+                    return True
+                return accept(db)
+    if only_check:
+        return False
     return incorrect(db)
 
 
@@ -271,7 +279,7 @@ if __name__ == "__main__":
         print('voice recording started')
 
     start_record = datetime.now()
-    stop_listening = r.listen_in_background(source, callback)
+    stop_listening = r.listen_in_background(source, callback, 5)
 
     play_audio(dialog(db[0].answers[0].say, 4))
     stop_listening()
