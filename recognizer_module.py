@@ -1,21 +1,4 @@
-from datetime import datetime, timedelta
-import time
-import json
 import speech_recognition as sr
-import soundfile as sf
-
-
-results = []
-folder = 'audios/'
-
-
-def get_pauses(results):
-    pauses = []
-    if len(results) > 1:
-        for index, res in enumerate(results[:-1]):
-            pause = results[index + 1]["start_speech"] - res["end_speech"]
-            pauses.append(pause.total_seconds())
-    return pauses
 
 
 def recognize_from_audio(r, audio):
