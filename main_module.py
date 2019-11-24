@@ -246,6 +246,24 @@ keyword = False
 end_call = False
 attempt = 0
 
+accept_words = ["yes", "yep", "ok", "yeah", "sure", "i think so", "good"]
+reject_words = ["no", "not interest", "f*** you", "don't call me", "stop calling me", "goodbye" ]
+later_words = ["not right now", "don't have time", "not now", "later", "in an hour", "hour", "minutes", "tomorrow"]
+
+
+def get_command(stage):
+    text = stage
+    for word in reject_words:
+        if word in text:
+            return rejection(db)
+    for word in later_words:
+        if word in text:
+            return later(db)
+    for word in accept_words:
+        if word in text:
+            return accept(db)
+    return incorrect(db)
+
 
 if __name__ == "__main__":
     with mic as source:
