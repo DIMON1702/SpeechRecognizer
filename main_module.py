@@ -13,7 +13,7 @@ from answers import parse_answers, Step, Answer
 from settings import MODE, REPEAT
 
 
-def get_words_from_speech(stage):
+def get_phrases_from_speech(stage):
     """
     Function returned list of words from current stage
     """
@@ -113,20 +113,19 @@ def dialog(speak_phrase, answer_time=5, repeat=2):
     The function is the main logic for selecting the next phrase, recording speech, recognizing it.
     Return phrase for next step
     """
-
     global keyword, attempt
 
-    play_audio(speak_phrase) # play speak_phrase from parameters
+    play_audio(speak_phrase)  # play speak_phrase from parameters
     next_phrase = speak_phrase
 
     # Waiting for an answer
     print('time to answer')
-    for _ in range(10 * answer_time): 
+    for _ in range(10 * answer_time):
         if get_keyword():
             break
         time.sleep(0.1)
 
-    text = get_words_from_speech(all_speeches[stage])
+    text = get_phrases_from_speech(all_speeches[stage])
     print('text in dialog:', text)  # for debug
     if text is None:  # silence
         next_phrase = silence(db)
@@ -136,12 +135,11 @@ def dialog(speak_phrase, answer_time=5, repeat=2):
         attempt += 1
     else:
         next_phrase = get_command(text)
-        # next_phrase = get_answer(text, db)
         if not get_keyword():
             attempt += 1
         else:
             toggle_keyword()
-    print('attempt', attempt)
+    # print('attempt', attempt) # for debug
     if attempt == REPEAT:
         play_audio(next_phrase)
         return later(db)
@@ -232,25 +230,6 @@ def play_audio(filename):
         print(e)
 
 
-users_speech_folder = 'user_speeches/'
-
-device = miniaudio.PlaybackDevice()
-r = sr.Recognizer()  # Creating Recognizer object
-mic = sr.Microphone()  # Creating Microphone object
-
-data = yaml.safe_load(Path('answers.yaml').open())
-db = parse_answers(data)
-stage = 0
-all_speeches = [[]]
-keyword = False
-end_call = False
-attempt = 0
-
-accept_words = ["yes", "yep", "ok", "yeah", "sure", "i think so", "good"]
-reject_words = ["no", "not interest", "f*** you", "don't call me", "stop calling me", "goodbye" ]
-later_words = ["not right now", "don't have time", "not now", "later", "in an hour", "hour", "minutes", "tomorrow"]
-
-
 def get_command(stage, only_check=False):
     for text in stage:
         for word in reject_words:
@@ -271,6 +250,27 @@ def get_command(stage, only_check=False):
     if only_check:
         return False
     return incorrect(db)
+
+
+users_speech_folder = 'user_speeches/'
+
+device = miniaudio.PlaybackDevice()
+r = sr.Recognizer()  # Creating Recognizer object
+mic = sr.Microphone()  # Creating Microphone object
+
+data = yaml.safe_load(Path('answers.yaml').open())
+db = parse_answers(data)
+stage = 0
+all_speeches = [[]]
+keyword = False
+end_call = False
+attempt = 0
+
+accept_words = ["yes", "yep", "ok", "yeah", "sure", "i think so", "good"]
+reject_words = ["no", "not interest", "f*** you",
+                "don't call me", "stop calling me", "goodbye"]
+later_words = ["not right now", "don't have time", "not now",
+               "later", "in an hour", "hour", "minutes", "tomorrow"]
 
 
 if __name__ == "__main__":
