@@ -31,7 +31,7 @@
         - sure
         - i think so
         - not sure
-      say: audios/step2_accepted.wav
+      say: audios/step1_accepted.wav
       cmd: ACCEPT
 2:
   tag: second response
@@ -65,7 +65,7 @@
         - sure
         - please call
       cmd: EXIT
-      say: audios/step3_accepted.wav
+      say: audios/step2_accepted.wav
 
 reject:
   tag: user rejected

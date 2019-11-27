@@ -27,8 +27,8 @@ def parse_answers(data: Dict[int, Any]) -> Dict[int, Step]:
     return answers_dict
 
 #   intro               Hi, this is Julia calling from Toyota. We have a sale going right now. Would you like to hear how you can save money on your car purchase today?
-#   step2_accepted      great! here's how it works. a representative will call you to explain all the details right after this phone call. is it ok?
-#   step3_accepted      Great, our manager will call you back now for further details.
+#   step1_accepted      great! here's how it works. a representative will call you to explain all the details right after this phone call. is it ok?
+#   step2_accepted      Great, our manager will call you back now for further details.
 #   reject              Excuse for troubling. Goodbye.
 #   later               I'll call you back later.
 #   silence             Sorry, I did not hear.
