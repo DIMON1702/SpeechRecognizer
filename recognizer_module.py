@@ -1,9 +1,9 @@
 import speech_recognition as sr
 
 
-def recognize_from_audio(r, audio):
+def recognize_from_audio(r, audio, language="en-US"):
     try:
-        text = r.recognize_google(audio, language="en-US")
+        text = r.recognize_google(audio, language=language)
     except sr.RequestError:
         print("Error! API unavailable")
     except sr.UnknownValueError:
