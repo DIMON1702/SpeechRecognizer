@@ -11,6 +11,7 @@ import miniaudio
 from recognizer_module import recognize_from_audio
 from answers import parse_answers, Step, Answer
 from settings import MODE, REPEAT
+import say
 
 
 users_speech_folder = 'user_speeches/'
@@ -19,8 +20,12 @@ device = miniaudio.PlaybackDevice()
 r = sr.Recognizer()  # Creating Recognizer object
 mic = sr.Microphone()  # Creating Microphone object
 
-data = yaml.safe_load(Path('answers.yaml').open())
-db = parse_answers(data)
+# data = yaml.safe_load(Path('answers.yaml').open())
+# db = parse_answers(data)
+db = say.parse_dialog(Path('outgoing3.txt').read_text().splitlines())
+root_say_obj = db.get("root")
+replies = root_say_obj.reply
+
 stage = 0
 all_speeches = [[]]
 keyword = False
@@ -51,7 +56,7 @@ def callback(recognizer, audio):
     recognizer - Recognizer object from main thread
     audio - Audio object with recorded audio
     """
-    global keyword
+    global keyword, replies
     end_time = datetime.now()
     filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
     flac_data = audio.get_flac_data()
@@ -73,7 +78,7 @@ def callback(recognizer, audio):
         'text': text,
     }
     all_speeches[stage].append(result)
-    if text and get_command([text], True):
+    if text and get_next_say(replies, [text], True):
         try:
             device.stop()
         except:
@@ -184,6 +189,24 @@ def get_command(stage, only_check=False):
     return incorrect(db)
 
 
+def do_command(command):
+    print(command)
+
+
+def get_next_say(replies, speech, only_check=False):
+    """
+    function seeks words and phrases in lists and returns the appropriate command
+    """
+    keywords = {replies.index(
+        say): [keyword.keyword for keyword in say.hear] for say in replies}
+    for key, value in keywords.items():
+        for val in value:
+            if val in speech:
+                if only_check:
+                    return True
+                return replies[key]
+
+
 def get_phrases_from_speech(stage):
     """
     Function returns list of phrases from current stage
@@ -213,16 +236,66 @@ def play_audio(filename):
         print(e)
 
 
-def dialog(speak_phrase, answer_time=5, repeat=2):
+# def dialog(speak_phrase, answer_time=5, repeat=2):
+#     """
+#     The function is the main logic for selecting the next phrase, recording speech, recognizing it.
+#     Return phrase for next step
+#     """
+#     global keyword, attempt
+
+#     play_audio(speak_phrase)  # play speak_phrase from parameters
+#     next_phrase = speak_phrase
+
+#     # Waiting for an answer
+#     print('time to answer')
+#     for _ in range(10 * answer_time):
+#         if get_keyword():
+#             break
+#         time.sleep(0.1)
+
+#     text = get_phrases_from_speech(all_speeches[stage])
+#     print('text in dialog:', text)  # for debug
+#     if text is None:  # silence
+#         next_phrase = silence(db)
+#         attempt += 1
+#     elif len(text) == 0:  # not recognize
+#         next_phrase = incorrect(db)
+#         attempt += 1
+#     else:
+#         next_phrase = get_command(text)
+#         if not get_keyword():
+#             attempt += 1
+#         else:
+#             toggle_keyword()
+#     # print('attempt', attempt) # for debug
+#     if attempt == REPEAT:
+#         play_audio(next_phrase)
+#         return later(db)
+#     if not end_call:
+#         next_phrase = dialog(next_phrase)
+#     else:
+#         print('end_phrase', next_phrase)
+#     return next_phrase
+
+
+def play_text(text):
+    print(text)
+
+
+def dialog2(say_obj, answer_time=5, repeat=2):
     """
     The function is the main logic for selecting the next phrase, recording speech, recognizing it.
     Return phrase for next step
     """
-    global keyword, attempt
+    global keyword, attempt, replies
+    replies = say_obj.reply
 
-    play_audio(speak_phrase)  # play speak_phrase from parameters
-    next_phrase = speak_phrase
+    play_text(say_obj.say[0])  # play speak_phrase from parameters
+    if say_obj.cmd is not None:
+        do_command(say_obj.cmd)
 
+    if replies is None:
+        return 0
     # Waiting for an answer
     print('time to answer')
     for _ in range(10 * answer_time):
@@ -239,7 +312,7 @@ def dialog(speak_phrase, answer_time=5, repeat=2):
         next_phrase = incorrect(db)
         attempt += 1
     else:
-        next_phrase = get_command(text)
+        dialog2(get_next_say(replies, text))
         if not get_keyword():
             attempt += 1
         else:
@@ -248,11 +321,11 @@ def dialog(speak_phrase, answer_time=5, repeat=2):
     if attempt == REPEAT:
         play_audio(next_phrase)
         return later(db)
-    if not end_call:
-        next_phrase = dialog(next_phrase)
-    else:
-        print('end_phrase', next_phrase)
-    return next_phrase
+    # if not end_call:
+    #     next_phrase = dialog(next_phrase)
+    # else:
+    #     print('end_phrase', next_phrase)
+    return 0
 
 
 if __name__ == "__main__":
@@ -263,9 +336,10 @@ if __name__ == "__main__":
     start_record = datetime.now()
     stop_listening = r.listen_in_background(source, callback, 5)
 
-    play_audio(dialog(db[0].answers[0].say, 4))
+    # play_audio(dialog(db[0].answers[0].say, 4))
+    dialog2(root_say_obj)
     stop_listening()
     print('voice recording stopped')
     end_record = datetime.now()
     print(all_speeches)
-    format_json(start_record, end_record, all_speeches)
+    # format_json(start_record, end_record, all_speeches)
