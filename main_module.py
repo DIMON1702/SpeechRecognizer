@@ -29,14 +29,14 @@ replies = root_say_obj.reply
 stage = 0
 all_speeches = [[]]
 keyword = False
-end_call = False
+# end_call = False
 attempt = 0
 
-accept_words = ["yes", "yep", "ok", "yeah", "sure", "i think so", "good"]
-reject_words = ["no", "not interest", "f*** you",
-                "don't call me", "stop calling me", "goodbye"]
-later_words = ["not right now", "don't have time", "not now",
-               "later", "in an hour", "hour", "minutes", "tomorrow"]
+# accept_words = ["yes", "yep", "ok", "yeah", "sure", "i think so", "good"]
+# reject_words = ["no", "not interest", "f*** you",
+#                 "don't call me", "stop calling me", "goodbye"]
+# later_words = ["not right now", "don't have time", "not now",
+#                "later", "in an hour", "hour", "minutes", "tomorrow"]
 
 
 def toggle_keyword():
@@ -123,70 +123,71 @@ def format_json(start_call, end_call, all_speeches):
         f.write(json.dumps(result))
 
 
-def rejection(db):
-    global end_call
-    end_call = True
-    print('rejected')
-    return db['reject'].answers[0].say  # 1
+# def rejection(db):
+#     global end_call
+#     end_call = True
+#     print('rejected')
+#     return db['reject'].answers[0].say  # 1
 
 
-def later(db):
-    global end_call
-    end_call = True
-    print('later')
-    return db['later'].answers[0].say  # 2
+# def later(db):
+#     global end_call
+#     end_call = True
+#     print('later')
+#     return db['later'].answers[0].say  # 2
 
 
 def silence(db):
     print('silence')
-    return db['silence'].answers[0].say  # 3
+    # return db['silence'].answers[0].say  # 3
+    return('silence')
 
-
-def accept(db):
-    global stage, keyword, attempt
-    print('accepted')
-    all_speeches.append([])
-    stage += 1
-    attempt = 0
-    # keyword = False
-    return db[stage].answers[-1].say  # 0
+# def accept(db):
+#     global stage, keyword, attempt
+#     print('accepted')
+#     all_speeches.append([])
+#     stage += 1
+#     attempt = 0
+#     # keyword = False
+#     return db[stage].answers[-1].say  # 0
 
 
 def incorrect(db):
     print('incorrect')
-    return db['incorrect'].answers[0].say  # 4
+    # return db['incorrect'].answers[0].say  # 4
+    return "incorrect"
 
 
-def call_end(text):
-    global end_call, stage
-    end_call = True
-    print('exit', stage)
-    return db[stage + 1].answers[-1].say  # text 0
+# def call_end(text):
+#     global end_call, stage
+#     end_call = True
+#     print('exit', stage)
+#     return db[stage + 1].answers[-1].say  # text 0
 
 
-def get_command(stage, only_check=False):
-    """
-    function seeks words and phrases in lists and returns the appropriate command
-    """
-    for text in stage:
-        for word in reject_words:
-            if word in text:
-                if only_check:
-                    return True
-                return rejection(db)
-        for word in later_words:
-            if word in text:
-                if only_check:
-                    return True
-                return later(db)
-        for word in accept_words:
-            if word in text:
-                if only_check:
-                    return True
-                return accept(db)
-    if only_check:
-        return False
-    return incorrect(db)
+# def get_command(stage, only_check=False):
+#     """
+#     function seeks words and phrases in lists and returns the appropriate command
+#     """
+#     for text in stage:
+#         for word in reject_words:
+#             if word in text:
+#                 if only_check:
+#                     return True
+#                 return rejection(db)
+#         for word in later_words:
+#             if word in text:
+#                 if only_check:
+#                     return True
+#                 return later(db)
+#         for word in accept_words:
+#             if word in text:
+#                 if only_check:
+#                     return True
+#                 return accept(db)
+#     if only_check:
+#         return False
+#     return incorrect(db)
 
 
 def do_command(command):
@@ -198,7 +199,7 @@ def get_next_say(replies, speech, only_check=False):
     function seeks words and phrases in lists and returns the appropriate command
     """
     keywords = {replies.index(
-        say): [keyword.keyword for keyword in say.hear] for say in replies}
+        say_o): [keyword.keyword for keyword in say_o.hear] for say_o in replies}
     for key, value in keywords.items():
         for val in value:
             if val in speech:
@@ -289,8 +290,9 @@ def dialog2(say_obj, answer_time=5, repeat=2):
     """
     global keyword, attempt, replies
     replies = say_obj.reply
+    keyword = False
 
-    play_text(say_obj.say[0])  # play speak_phrase from parameters
+    play_audio(say_obj.say[0].audio)  # play speak_phrase from parameters
     if say_obj.cmd is not None:
         do_command(say_obj.cmd)
 
@@ -318,9 +320,9 @@ def dialog2(say_obj, answer_time=5, repeat=2):
         else:
             toggle_keyword()
     # print('attempt', attempt) # for debug
-    if attempt == REPEAT:
-        play_audio(next_phrase)
-        return later(db)
+    # if attempt == REPEAT:
+    #     play_audio(next_phrase)
+    #     return later(db)
     # if not end_call:
     #     next_phrase = dialog(next_phrase)
     # else:
@@ -342,4 +344,4 @@ if __name__ == "__main__":
     print('voice recording stopped')
     end_record = datetime.now()
     print(all_speeches)
-    # format_json(start_record, end_record, all_speeches)
+    format_json(start_record, end_record, all_speeches)
