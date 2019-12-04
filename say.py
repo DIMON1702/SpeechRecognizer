@@ -1,8 +1,11 @@
 from pathlib import Path
+import os.path
 from pprint import pprint, pformat
 from typing import List, Dict, Union, Iterator
 
 from dataclasses import dataclass
+
+import hashlib
 
 # max allowed silence time in sec
 MAX_SILENCE = 5
@@ -12,6 +15,28 @@ VOICE_DIR = 'voice'
 
 # types
 Value = Union[str, int, float]
+
+
+from gtts import gTTS
+from pydub import AudioSegment
+
+path = 'audios/'
+
+
+def mp3_to_wav(filename):
+    sound = AudioSegment.from_mp3(filename + '.mp3')
+    sound.export(filename, format='wav')
+
+
+# def wav_to_mp3(filename):
+#     sound = AudioSegment.from_wav(filename + '.wav')
+#     sound.export(filename + '.mp3', format='mp3')
+
+
+def text_to_wav(text, filename, path='audios/'):
+    tts = gTTS(text)
+    tts.save(path + filename + '.mp3')
+    mp3_to_wav(path + filename)
 
 
 @dataclass
@@ -64,6 +89,12 @@ class Say:
     reply: List['Say'] = None
 
 
+def hash_text(text: str) -> str:
+    hash = hashlib.md5()
+    hash.update(bytes(text, 'utf8'))
+    return hash.hexdigest()
+
+
 def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
     def build_nodes(lines: Iterator[str]) -> Dict[str, Node]:
         dic = {}
@@ -101,7 +132,11 @@ def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
             verb = node.text.lower()
             assert node.text == verb.capitalize(), node
             if verb == 'say':
-                say.say = [Voice(nodes[kid].text) for kid in node.kids]
+                say.say = [Voice(nodes[kid].text, path + hash_text(nodes[kid].text) + '.wav') for kid in node.kids]
+                for voice in say.say:
+                    # print(path + voice.audio, os.path.exists(path + voice.audio))
+                    if not os.path.exists(voice.audio):
+                        text_to_wav(voice.text, voice.audio)
             elif verb == 'hear':
                 say.hear = [Hear(nodes[kid].text) for kid in node.kids]
             elif verb == 'option':
@@ -128,4 +163,4 @@ def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
 
 if __name__ == '__main__':
     dialog = parse_dialog(Path('outgoing3.txt').read_text().splitlines())
-    pprint(dialog)
+    # pprint(dialog)
