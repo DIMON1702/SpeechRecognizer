@@ -33,7 +33,7 @@ def mp3_to_wav(filename):
 #     sound.export(filename + '.mp3', format='mp3')
 
 
-def text_to_wav(text, filename, path='audios/'):
+def text_to_wav(text, filename, path=''):
     tts = gTTS(text)
     tts.save(path + filename + '.mp3')
     mp3_to_wav(path + filename)
@@ -163,4 +163,4 @@ def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
 
 if __name__ == '__main__':
     dialog = parse_dialog(Path('outgoing3.txt').read_text().splitlines())
-    # pprint(dialog)
+    pprint(dialog)
