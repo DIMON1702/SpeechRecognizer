@@ -47,13 +47,13 @@ class Node:
 
 @dataclass
 class Cmd:
-    commands = tuple('''
-        goto
-        call_after_days
-        remove_from_list
-        call_after_min
-        connect_salesperson
-        '''.split())
+    commands = tuple(
+        'goto', 
+        'call_after_days',
+        'remove_from_list',
+        'call_after_min',
+        'connect_salesperson'
+    )
     cmd: str = None
     value: Value = None
 

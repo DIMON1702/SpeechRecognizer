@@ -26,7 +26,6 @@ replies = root_say_obj.reply
 stage = 0
 all_speeches = [[]]
 keyword = False
-# end_call = False
 attempt = 0
 
 
@@ -114,34 +113,26 @@ def format_json(start_call, end_call, all_speeches):
         f.write(json.dumps(result))
 
 
-def silence(db):
-    print('silence')
-    # return db['silence'].answers[0].say  # 3
-    return('silence')
-
-
-def incorrect(db):
-    print('incorrect')
-    # return db['incorrect'].answers[0].say  # 4
-    return "incorrect"
-
-
-# def call_end(text):
-#     global end_call, stage
-#     end_call = True
-#     print('exit', stage)
-#     return db[stage + 1].answers[-1].say  # text 0
-
-
 def do_command(commands):
     global replies
-    print(commands)
     for command in commands:
         if command.cmd == 'goto':
             replies = db.get(command.value).reply
-            # dialog(db.get(command.value), is_repeat=True)
             return 1
+        elif command.cmd == 'call_after_days':
+            print(command.cmd, command.value)
+            return 2
+        elif command.cmd == 'remove_from_list':
+            print(command.cmd, command.value)
+            return 3
+        elif command.cmd == 'call_after_min':
+            print(command.cmd, command.value)
+            return 4
+        elif command.cmd == 'connect_salesperson':
+            print(command.cmd, command.value)
+            return 5
         else:
+            print('Incorrect command')
             return 0
 
 
@@ -189,95 +180,22 @@ def play_audio(filename):
         print(e)
 
 
-def end_call(code):
-    if code == 'silence':
-        print('end_call')
-        return 0
-
-
-'''
-def dialog2(say_obj, is_repeat=False, answer_time=5, repeat=2):
+def dialog(say_obj, is_repeat=False, answer_time=5, **kwargs):
     """
     The function is the main logic for selecting the next phrase, recording speech, recognizing it.
-    Return phrase for next step
+    Return 0
     """
-    print('is_repeat', is_repeat)
-    global keyword, attempt, replies
-    replies = say_obj.reply
-    keyword = False
-
-    
-    if not is_repeat:
-        play_audio(say_obj.say[0].audio)  # play speak_phrase from parameters
-        if say_obj.cmd is not None:
-            do_command(say_obj.cmd)
-
-    if replies is None:
-        return 0
-    # Waiting for an answer
-    print('time to answer')
-    for _ in range(10 * answer_time):
-        if get_keyword():
-            break
-        time.sleep(0.1)
-
-    text = get_phrases_from_speech(all_speeches[stage])
-    print('text in dialog:', text)  # for debug
-    if text is None or len(text) == 0:  # silence
-        if is_repeat:
-            end_call("silence")
-        else:
-            dialog2(get_next_say(replies, ""))
-    #     next_phrase = silence(db)
-    #     attempt += 1
-    # elif len(text) == 0:  # not recognize
-    #     dialog2(get_next_say(replies, ""))
-    #     attempt += 1
-    else:
-        if not get_keyword():
-            if is_repeat:
-                return end_call("silence")
-        # else:
-        #     dialog2(get_next_say(replies, ""))
-        else:
-            toggle_keyword()
-        dialog2(get_next_say(replies, text))
-        
-        
-    # print('attempt', attempt) # for debug
-    # if attempt == REPEAT:
-    #     play_audio(next_phrase)
-    #     return later(db)
-    # if not end_call:
-    #     next_phrase = dialog(next_phrase)
-    # else:
-    #     print('end_phrase', next_phrase)
-    print("END OF DIALOG")
-    return 0
-'''
-
-
-
-
-
-def dialog(say_obj, is_repeat=False, answer_time=5):
-    """
-    The function is the main logic for selecting the next phrase, recording speech, recognizing it.
-    Return phrase for next step
-    """
-
-    global keyword, attempt, replies
+    global keyword, replies, stage
     replies = say_obj.reply
     keyword = False
     next_is_repeat = False
 
-    # if not is_repeat:
     play_audio(say_obj.say[0].audio)  # play speak_phrase from parameters
     if say_obj.cmd is not None:
         if not do_command(say_obj.cmd):
             return 0
 
-    if replies is None: # <==================================== IN THIS NOT CORRECT IF REPEATED
+    if replies is None:
         return 0
 
     # Waiting for an answer
@@ -300,14 +218,13 @@ def dialog(say_obj, is_repeat=False, answer_time=5):
             next_is_repeat = True
             text = ''
 
-    print('NEXT ANSWER')
     if not is_repeat:
+        all_speeches.append([])
+        stage += 1
         dialog(get_next_say(replies, text), is_repeat=next_is_repeat)
-    print("END OF DIALOG")
+    else:
+        print('FOREVER SILENCE') # must be voice
     return 0
-
-
-
 
 
 if __name__ == "__main__":
@@ -317,11 +234,9 @@ if __name__ == "__main__":
 
     start_record = datetime.now()
     stop_listening = r.listen_in_background(source, callback, 5)
-
-    # play_audio(dialog(db[0].answers[0].say, 4))
     dialog(root_say_obj)
     stop_listening()
     print('voice recording stopped')
     end_record = datetime.now()
-    print(all_speeches)
+    print(all_speeches) # for debug
     format_json(start_record, end_record, all_speeches)
