@@ -64,7 +64,7 @@
 1.1.3.5.3.1 1
 1.1.3.6 2. not sure
 1.1.3.6.1 Hear
-1.1.3.6.1.1 i'm not sure
+1.1.3.6.1.1 I'm not sure
 1.1.3.6.2 Say
 1.1.3.6.2.1 Here's what we are offering. (Explanation..) Are you interested?
 1.1.3.6.2.2 Another thing we are offering...
