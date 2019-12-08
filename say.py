@@ -47,7 +47,7 @@ class Node:
 
 @dataclass
 class Cmd:
-    commands = tuple(
+    commands = (
         'goto', 
         'call_after_days',
         'remove_from_list',
