@@ -8,8 +8,8 @@ import soundfile as sf
 import miniaudio
 
 from recognizer_module import recognize_from_audio
-from answers import parse_answers, Step, Answer
-from settings import MODE, REPEAT
+# from answers import parse_answers, Step, Answer
+# from settings import MODE, REPEAT
 import say
 
 
@@ -140,6 +140,10 @@ def get_next_say(replies, speech, only_check=False):
     """
     function seeks words and phrases in lists and returns the appropriate command
     """
+    if not replies:
+        return 0
+    if only_check:
+        print('REPLIES', replies)
     keywords = {replies.index(
         say_o): [keyword.keyword for keyword in say_o.hear] for say_o in replies}
     for key, value in keywords.items():
@@ -148,6 +152,8 @@ def get_next_say(replies, speech, only_check=False):
                 if only_check:
                     return True
                 return replies[key]
+    if only_check:
+        return False
     return replies[-1]
 
 
@@ -159,16 +165,16 @@ def get_phrases_from_speech(stage):
         return None
     res = [speech['text']
            for speech in stage if speech['text'] is not None]
-    print(res) # for debug
+    print(res)  # for debug
     return res
 
 
 def play_audio(filename):
-    print(filename) # for debug
+    print(filename)  # for debug
     f = sf.SoundFile(filename)
     duration = len(f) / f.samplerate
     stream = miniaudio.stream_file(filename)
-    # print(duration) 
+    # print(duration)
     device.start(stream)
     for _ in range(int(10 * duration) + 1):
         if get_keyword():
@@ -180,7 +186,7 @@ def play_audio(filename):
         print(e)
 
 
-def dialog(say_obj, is_repeat=False, answer_time=5, **kwargs):
+def dialog(say_obj, is_repeat=False, answer_time=5, options=say.Option(say.MAX_SILENCE, say.MAX_RESPONSE), **kwargs):
     """
     The function is the main logic for selecting the next phrase, recording speech, recognizing it.
     Return 0
@@ -223,7 +229,7 @@ def dialog(say_obj, is_repeat=False, answer_time=5, **kwargs):
         stage += 1
         dialog(get_next_say(replies, text), is_repeat=next_is_repeat)
     else:
-        print('FOREVER SILENCE') # must be voice
+        print('FOREVER SILENCE')  # must be voice
     return 0
 
 
@@ -238,5 +244,5 @@ if __name__ == "__main__":
     stop_listening()
     print('voice recording stopped')
     end_record = datetime.now()
-    print(all_speeches) # for debug
+    print(all_speeches)  # for debug
     format_json(start_record, end_record, all_speeches)
