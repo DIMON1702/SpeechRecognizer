@@ -3,8 +3,8 @@
 1 outgoing
 1.1 1. intro
 1.1.1 Say
-1.1.1.1 Hi, this is John from Toyota. We have a sale. Would you like to hear about it?
-1.1.1.2 Hi, John here, calling about new sale.
+1.1.1.1 Hi, this is Julia from Toyota. We have a sale. Would you like to hear about it?
+1.1.1.2 Hi, Julia here, calling about new sale.
 1.1.2 Option
 1.1.2.1 max_silence=2.5
 1.1.2.2 #max_response=15
@@ -50,7 +50,7 @@
 1.1.3.4.1.4 i can't hear you
 1.1.3.4.1.5 can you hear me
 1.1.3.4.2 Say
-1.1.3.4.2.1 This is John. I'm from Toyota. Would you like to hear about the sale?
+1.1.3.4.2.1 This is Julia. I'm from Toyota. Would you like to hear about the sale?
 1.1.3.4.3 Goto
 1.1.3.4.3.1 1
 1.1.3.5 don't understand
