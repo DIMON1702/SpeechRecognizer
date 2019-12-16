@@ -12,8 +12,12 @@ from recognizer_module import recognize_from_audio
 # from settings import MODE, REPEAT
 import say
 
+import os
 
-users_speech_folder = 'user_speeches/'
+users_speech_folder = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), 'user_speeches', '')
+
+# users_speech_folder = 'user_speeches/'
 
 device = miniaudio.PlaybackDevice()
 r = sr.Recognizer()  # Creating Recognizer object

@@ -20,7 +20,10 @@ Value = Union[str, int, float]
 from gtts import gTTS
 from pydub import AudioSegment
 
-path = 'audios/'
+# path = 'audios/'
+
+path = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), 'audios', '')
 
 
 def mp3_to_wav(filename):
