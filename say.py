@@ -1,5 +1,5 @@
 from pathlib import Path
-import os.path
+import os.path, sys
 from pprint import pprint, pformat
 from typing import List, Dict, Union, Iterator
 
@@ -20,10 +20,13 @@ Value = Union[str, int, float]
 from gtts import gTTS
 from pydub import AudioSegment
 
-# path = 'audios/'
+
+audios_dir = 'audios_{}_{}'.format(sys.argv[1], sys.argv[2].split('.')[0])
+if not os.path.exists(audios_dir):
+    os.makedirs(audios_dir)
 
 path = os.path.join(os.path.dirname(
-    os.path.abspath(__file__)), 'audios', '')
+    os.path.abspath(__file__)), audios_dir, '')
 
 
 def mp3_to_wav(filename):

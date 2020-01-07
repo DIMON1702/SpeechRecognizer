@@ -1,3 +1,4 @@
+import sys
 import json
 import time
 from datetime import datetime, timedelta
@@ -10,8 +11,6 @@ import miniaudio
 from recognizer_module import recognize_from_audio
 # from answers import parse_answers, Step, Answer
 # from settings import MODE, REPEAT
-import say
-
 import os
 
 users_speech_folder = os.path.join(os.path.dirname(
@@ -23,9 +22,23 @@ device = miniaudio.PlaybackDevice()
 r = sr.Recognizer()  # Creating Recognizer object
 mic = sr.Microphone()  # Creating Microphone object
 
-db = say.parse_dialog(Path('outgoing3.txt').read_text().splitlines())
+if len(sys.argv) != 3:
+        raise AttributeError("Invalid number of parameters ({}). Must be 2 (language and file name with phrases)".format(
+            len(sys.argv)-1))
+lang = sys.argv[1]
+text_file = sys.argv[2]
+# lang = 'en-US'
+# text_file = 'outgoing3.txt'
+
+import say
+db = say.parse_dialog(Path(text_file).read_text().splitlines())
 root_say_obj = db.get("root")
 replies = root_say_obj.reply
+
+logs_dir = 'logs_{}'.format(lang)
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
+
 
 stage = 0
 all_speeches = [[]]
@@ -61,7 +74,7 @@ def callback(recognizer, audio):
     duration = len(f) / f.samplerate
     start_time = end_time - timedelta(seconds=duration)
 
-    text = recognize_from_audio(recognizer, audio)
+    text = recognize_from_audio(recognizer, audio, lang)
     print(text)
 
     result = {
@@ -112,8 +125,8 @@ def format_json(start_call, end_call, all_speeches):
         'duration': (end_call - start_call).total_seconds(),
         'stages': json_results
     }
-    json_filename = "data_{}.json".format(result['start_call'])
-    with open(json_filename, 'w') as f:
+    json_filename = "data_{}_{}.json".format(lang, result['start_call'])
+    with open(os.path.join(logs_dir, json_filename), 'w') as f:
         f.write(json.dumps(result))
 
 
@@ -146,8 +159,8 @@ def get_next_say(replies, speech, only_check=False):
     """
     if not replies:
         return 0
-    if only_check:
-        print('REPLIES', replies)
+    # if only_check:
+    #     print('REPLIES', replies)
     keywords = {replies.index(
         say_o): [keyword.keyword for keyword in say_o.hear] for say_o in replies}
     for key, value in keywords.items():
