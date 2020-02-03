@@ -16,6 +16,8 @@ import os
 users_speech_folder = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'user_speeches', '')
 
+if not os.path.exists(users_speech_folder):
+    os.mkdir(users_speech_folder)
 # users_speech_folder = 'user_speeches/'
 
 device = miniaudio.PlaybackDevice()
