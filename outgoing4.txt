@@ -1,0 +1,110 @@
+#MindMapExport FreeplaneVersion:freeplane 1.7.0
+
+1 outgoing
+1.1 1. intro
+1.1.1 Say
+1.1.1.1 intro1.wav
+1.1.1.2 Hi, Julia here, calling about new sale.
+1.1.2 Option
+1.1.2.1 max_silence=2.5
+1.1.2.2 #max_response=15
+1.1.2.3 max_response=10
+1.1.3 Reply
+1.1.3.1 no
+1.1.3.1.1 Hear
+1.1.3.1.1.1 not interested
+1.1.3.1.1.2 no thanks
+1.1.3.1.1.3 i don't want
+1.1.3.1.1.4 no
+1.1.3.1.1.5 f*** you
+1.1.3.1.2 Say
+1.1.3.1.2.1 reject1.wav
+1.1.3.1.3 Cmd
+1.1.3.1.3.1 call_after_days=90
+1.1.3.2 don't call
+1.1.3.2.1 Hear
+1.1.3.2.1.1 don't call me
+1.1.3.2.1.2 stop calling me
+1.1.3.2.1.3 i don't want you to call me
+1.1.3.2.1.4 #call yo mamma
+1.1.3.2.2 Say
+1.1.3.2.2.1 reject2.wav
+1.1.3.2.3 Cmd
+1.1.3.2.3.1 remove_from_list
+1.1.3.3 later
+1.1.3.3.1 Hear
+1.1.3.3.1.1 not right now
+1.1.3.3.1.2 not now
+1.1.3.3.1.3 don't have time
+1.1.3.3.1.4 later
+1.1.3.3.1.5 call tomorrow
+1.1.3.3.2 Say
+1.1.3.3.2.1 later1.wav
+1.1.3.3.3 Cmd
+1.1.3.3.3.1 call_after_min=60
+1.1.3.4 can't hear
+1.1.3.4.1 Hear
+1.1.3.4.1.1 who is it
+1.1.3.4.1.2 allo
+1.1.3.4.1.3 hello
+1.1.3.4.1.4 i can't hear you
+1.1.3.4.1.5 can you hear me
+1.1.3.4.2 Say
+1.1.3.4.2.1 repeat1.wav
+1.1.3.4.3 Goto
+1.1.3.4.3.1 1
+1.1.3.5 don't understand
+1.1.3.5.1 Hear
+1.1.3.5.1.1 i don't understand
+1.1.3.5.1.2 what is it about
+1.1.3.5.1.3 what are you offering
+1.1.3.5.2 Say
+1.1.3.5.2.1 repeat2.wav
+1.1.3.5.3 Goto
+1.1.3.5.3.1 1
+1.1.3.6 2. not sure
+1.1.3.6.1 Hear
+1.1.3.6.1.1 I'm not sure
+1.1.3.6.2 Say
+1.1.3.6.2.1 not_sure1.wav
+1.1.3.6.2.2 Another thing we are offering...
+1.1.3.6.3 Reply
+1.1.3.6.3.1 yes
+1.1.3.6.3.1.1 Hear
+1.1.3.6.3.1.1.1 yes
+1.1.3.6.3.1.1.2 yeah
+1.1.3.6.3.1.1.3 sure
+1.1.3.6.3.1.2 Next
+1.1.3.6.3.1.2.1 3. after details
+1.1.3.6.3.1.2.1.1 ...
+1.1.3.6.3.2 no
+1.1.3.6.3.2.1 Hear
+1.1.3.6.3.2.1.1 not interested
+1.1.3.6.3.2.1.2 no thanks
+1.1.3.6.3.2.1.3 no
+1.1.3.6.3.2.2 Say
+1.1.3.6.3.2.2.1 reject3.wav
+1.1.3.6.3.2.3 Cmd
+1.1.3.6.3.2.3.1 call_after_days=90
+1.1.3.7 yes
+1.1.3.7.1 Hear
+1.1.3.7.1.1 ok great
+1.1.3.7.1.2 ok
+1.1.3.7.1.3 yes
+1.1.3.7.1.4 yeah
+1.1.3.7.1.5 sure
+1.1.3.7.1.6 yep
+1.1.3.7.2 Say
+1.1.3.7.2.1 accept1.wav
+1.1.3.7.3 Cmd
+1.1.3.7.3.1 connect_salesperson
+1.1.3.8 *
+1.1.3.8.1 Hear
+1.1.3.8.1.1 
+1.1.3.8.2 Say
+1.1.3.8.2.1 repeat3.wav
+1.1.3.8.3 Goto
+1.1.3.8.3.1 1
+1.2 1a. another intro
+1.2.1 Say
+1.2.1.1 hi, dusya from Mazda calling

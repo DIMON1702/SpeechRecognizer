@@ -24,12 +24,11 @@ device = miniaudio.PlaybackDevice()
 r = sr.Recognizer()  # Creating Recognizer object
 mic = sr.Microphone()  # Creating Microphone object
 
-if len(sys.argv) != 4:
-        raise AttributeError("Invalid number of parameters ({}). Must be 3 (language, file name with phrases, input audio filename)".format(
+if len(sys.argv) != 3:
+        raise AttributeError("Invalid number of parameters ({}). Must be 2 (language and file name with phrases)".format(
             len(sys.argv)-1))
 lang = sys.argv[1]
 text_file = sys.argv[2]
-audioinput = sr.AudioFile(sys.argv[3])
 # lang = 'en-US'
 # text_file = 'outgoing3.txt'
 
@@ -68,14 +67,14 @@ def callback(recognizer, audio):
     """
     global keyword, replies
     end_time = datetime.now()
-    filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
-    flac_data = audio.get_flac_data()
-    with open(users_speech_folder + filename, 'wb') as f:
-        f.write(flac_data)
+    # filename = "audio_{}.flac".format(end_time.strftime('%H_%M_%S'))
+    # flac_data = audio.get_flac_data()
+    # with open(users_speech_folder + filename, 'wb') as f:
+    #     f.write(flac_data)
 
-    f = sf.SoundFile(users_speech_folder + filename)
-    duration = len(f) / f.samplerate
-    start_time = end_time - timedelta(seconds=duration)
+    # f = sf.SoundFile(users_speech_folder + filename)
+    # duration = len(f) / f.samplerate
+    # start_time = end_time - timedelta(seconds=duration)
 
     text = recognize_from_audio(recognizer, audio, lang)
     print(text)
@@ -254,17 +253,15 @@ def dialog(say_obj, is_repeat=False, answer_time=5, options=say.Option(say.MAX_S
 
 
 if __name__ == "__main__":
-    # with mic as source:
-        # r.adjust_for_ambient_noise(source)
-    with audioinput as source:
-        print('voice recording started')
+    with mic as source:
+        r.adjust_for_ambient_noise(source)
+    print('voice recording started')
 
-        start_record = datetime.now()
-        # stop_listening = r.listen_in_background(source, callback, 5)
-        r.listen(source)
-        dialog(root_say_obj)
-        # stop_listening()
-        print('voice recording stopped')
-        end_record = datetime.now()
-        print(all_speeches)  # for debug
-        format_json(start_record, end_record, all_speeches)
+    start_record = datetime.now()
+    stop_listening = r.listen_in_background(source, callback, 5)
+    dialog(root_say_obj)
+    stop_listening()
+    print('voice recording stopped')
+    end_record = datetime.now()
+    print(all_speeches)  # for debug
+    format_json(start_record, end_record, all_speeches)
