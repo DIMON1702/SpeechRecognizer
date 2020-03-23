@@ -58,7 +58,8 @@ class Cmd:
         'call_after_days',
         'remove_from_list',
         'call_after_min',
-        'connect_salesperson'
+        'connect_salesperson',
+	'send_link'
     )
     cmd: str = None
     value: Value = None
