@@ -1,5 +1,6 @@
-# change MODE = "TTS" to use TTS or "SPEAKER" to use audiofiles to play recorded audio
-# if MODE = "SPEAKER" in answers yaml file in 'say' must be path to file with recorded audio
-MODE = "SPEAKER"
+RECORDS_FILE_PATH = '/var/lib/freeswitch/recordings/'
+MAIN_FILE_PATH = '/usr/share/freeswitch/scripts/'
+SESSIONS_FILE_PATH = '/usr/share/freeswitch/scripts/sessions/'
+PHRASES_FILE_PATH = '/var/lib/freeswitch/play/'
 
-REPEAT = 2
+LANGUAGE = 'he-IL'
