@@ -7,7 +7,7 @@ def recognize_from_audio(r, audio, language="en-US"):
     except sr.RequestError:
         print("Error! API unavailable")
     except sr.UnknownValueError:
-        print("Error! Unable to recognize speech")
+        # print("Error! Unable to recognize speech")
         return None
     except Exception as e:
         print(e)

@@ -1,5 +1,6 @@
 from pathlib import Path
-import os.path, sys
+import os.path
+import sys
 from pprint import pprint, pformat
 from typing import List, Dict, Union, Iterator
 
@@ -21,12 +22,12 @@ Value = Union[str, int, float]
 # from pydub import AudioSegment
 
 
-audios_dir = 'audios_{}_{}'.format(sys.argv[1], sys.argv[2].split('.')[0])
-if not os.path.exists(audios_dir):
-    os.makedirs(audios_dir)
+# audios_dir = 'audios_{}_{}'.format(sys.argv[1], sys.argv[2].split('.')[0])
+# if not os.path.exists(audios_dir):
+#     os.makedirs(audios_dir)
 
-path = os.path.join(os.path.dirname(
-    os.path.abspath(__file__)), audios_dir, '')
+# path = os.path.join(os.path.dirname(
+#     os.path.abspath(__file__)), audios_dir, '')
 
 
 # def mp3_to_wav(filename):
@@ -54,12 +55,13 @@ class Node:
 @dataclass
 class Cmd:
     commands = (
-        'goto', 
+        'goto',
         'call_after_days',
         'remove_from_list',
         'call_after_min',
         'connect_salesperson',
-	'send_link'
+        'send_link',
+        'hangup'
     )
     cmd: str = None
     value: Value = None
@@ -140,11 +142,12 @@ def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
             assert node.text == verb.capitalize(), node
             if verb == 'say':
                 # say.say = [Voice(nodes[kid].text, path + hash_text(nodes[kid].text) + '.wav') for kid in node.kids]
-                say.say = [Voice(nodes[kid].text, nodes[kid].text) for kid in node.kids]
+                say.say = [Voice(nodes[kid].text, nodes[kid].text)
+                           for kid in node.kids]
                 # for voice in say.say:
-                    # print(path + voice.audio, os.path.exists(path + voice.audio))
-                    # if not os.path.exists(voice.audio):
-                    #     text_to_wav(voice.text, voice.audio)
+                # print(path + voice.audio, os.path.exists(path + voice.audio))
+                # if not os.path.exists(voice.audio):
+                #     text_to_wav(voice.text, voice.audio)
             elif verb == 'hear':
                 say.hear = [Hear(nodes[kid].text) for kid in node.kids]
             elif verb == 'option':
@@ -154,7 +157,8 @@ def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
             elif verb == 'cmd':
                 say.cmd = get_cmd(node.kids)
             elif verb == 'goto':
-                say.cmd = (say.cmd or []) + [Cmd('goto', nodes[node.kids[0]].text)]
+                say.cmd = (say.cmd or []) + \
+                    [Cmd('goto', nodes[node.kids[0]].text)]
         if say.tag and say.tag[0].isdigit():
             i = say.tag.split()[0].rstrip('.')
             dialog_dict[i] = say
@@ -166,9 +170,11 @@ def parse_dialog(text_lines: Iterator[str]) -> Dict[str, Say]:
     dialog_dict = {}
     root = get_say(nodes['1'].kids[0])
     dialog_dict['root'] = root
+    repeat = get_say(nodes['1'].kids[1])
+    dialog_dict['repeat'] = repeat
     return dialog_dict
 
 
 if __name__ == '__main__':
-    dialog = parse_dialog(Path('outgoing3.txt').read_text().splitlines())
+    dialog = parse_dialog(Path('for_mango_ver4.txt').read_text().splitlines())
     pprint(dialog)

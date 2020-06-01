@@ -56,7 +56,6 @@ def create_external_call(number, caller_number='972035057669'):
     # os.system(FS_CLI + '"originate sofia/external/38490#972527955710@176.9.119.112 9090"') # Michael
     logger.info('Calling to {}'.format(number))
 
-
 def record_answer(uuid, filename, time=DEFAULT_ANSWER_TIME):
     # os.system(FS_CLI + '"uuid_record ' + uuid + ' start /var/lib/freeswitch/recordings/chemax_test_3.wav 5"')
     os.system('{}"uuid_record {} start {} {}"'.format(FS_CLI, uuid, filename, time)) # async
@@ -116,6 +115,7 @@ def do_command(command):
 def event_handler(con, say_obj, next_hangup=False, **kwargs):
     global uuid, number, CURRENT
 
+
     if next_hangup:
         hangup(uuid)
         logger.info('program HANGUP')
@@ -136,9 +136,16 @@ def event_handler(con, say_obj, next_hangup=False, **kwargs):
     # answer a call
     if ename == 'CHANNEL_ANSWER':
         logger.info('Answer a call')
+        
+        curr_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        # playback_file = e.getHeader('Playback-File-Path')
+        next_record = record_files_path + '{}_{}_{}.wav'.format(number, curr_datetime, 'FULL')
+        logger.info('Recording start to "{}"'.format(next_record))
+        record_answer(uuid, next_record, "")
+
         next_play = phrase_files_path + say_obj.say[0].audio # next_phrase
         logger.info('Played message "{}"'.format(next_play))
-        time.sleep(1.5) # time to wait before first phrase
+        time.sleep(1) # time to wait before first phrase
         play_file(uuid, next_play)
         return {'say_obj': say_obj, 'res': 1}
 
